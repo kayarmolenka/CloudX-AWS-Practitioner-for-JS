@@ -1,0 +1,2 @@
+interface getProductsById {}
+interface getProductsList {}
