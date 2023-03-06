@@ -1,6 +1,11 @@
 export const ERROR_MESSAGE = {
   PRODUCT_NOT_FOUND: "Product not found",
   SOMETHING_WRONG: "Something went wrong!",
+  BAD_REQUEST: "Bad request",
+};
+
+export const SUCCESS_MESSAGE = {
+  CREATE_PRODUCT: "Product was created",
 };
 
 export const HTTP_STATUSES = {

@@ -6,7 +6,9 @@
   "scripts": {
     "deploy": "serverless deploy",
     "test": "jest --coverage",
-    "offline": "serverless offline"
+    "offline": "serverless offline",
+    "fill-db-products": "node src/scripts/fill-in-db-products.js",
+    "fill-db-stocks": "node src/scripts/fill-in-db-stocks.js"
   },
   "author": "Kanstantsin Yarmolenka",
   "license": "ISC",
@@ -23,6 +25,12 @@
     "webpack-node-externals": "^3.0.0"
   },
   "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.284.0",
+    "@aws-sdk/lib-dynamodb": "^3.284.0",
+    "aws-sdk": "^2.1328.0",
+    "joi": "^17.8.3",
+    "serverless-dotenv-plugin": "^4.0.2",
+    "uuid": "^9.0.0",
     "winston": "^3.8.2"
   }
 }
