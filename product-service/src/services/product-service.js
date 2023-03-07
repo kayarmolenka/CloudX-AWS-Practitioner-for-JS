@@ -45,20 +45,20 @@ export class ProductService {
               id: { S: id },
               title: { S: title },
               description: { S: description },
-              price: { N: price },
+              price: { N: `${price}` },
             },
           },
         },
-        // {
-        //   Put: {
-        //     TableName: process.env.STOCKS_TABLE,
-        //     Item: {
-        //       id: { S: uuidv4() },
-        //       product_id: { S: id },
-        //       count: 10,
-        //     },
-        //   },
-        // },
+        {
+          Put: {
+            TableName: process.env.STOCKS_TABLE,
+            Item: {
+              id: { S: uuidv4() },
+              product_id: { S: id },
+              count: { N: `${10}` },
+            },
+          },
+        },
       ],
     };
 
