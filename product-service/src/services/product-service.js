@@ -8,6 +8,7 @@ import { dbClient } from "../db";
 import { v4 as uuidv4 } from "uuid";
 import { ERROR_MESSAGE, HTTP_STATUSES, SUCCESS_MESSAGE } from "../constants";
 import { errorResponse } from "../utils/responces";
+import { productsStocksSchema } from "../schemas";
 
 export class ProductService {
   getAllProducts = async () => {
@@ -62,16 +63,28 @@ export class ProductService {
       ],
     };
 
-    const command = new TransactWriteItemsCommand(transaction);
-    const transactionOutput = await dbClient.send(command);
+    const { error, value } = productsStocksSchema.validate(transaction);
 
-    if (transactionOutput?.$metadata?.httpStatusCode !== HTTP_STATUSES.OK_200) {
+    if (error) {
+      console.log(`Validation error: ${error.message}`);
       errorResponse(
         { message: ERROR_MESSAGE.SOMETHING_WRONG },
         HTTP_STATUSES.INTERNAL_SERVER_ERROR
       );
-    }
+    } else {
+      const command = new TransactWriteItemsCommand(value);
+      const transactionOutput = await dbClient.send(command);
 
-    return SUCCESS_MESSAGE.CREATE_PRODUCT;
+      if (
+        transactionOutput?.$metadata?.httpStatusCode !== HTTP_STATUSES.OK_200
+      ) {
+        errorResponse(
+          { message: ERROR_MESSAGE.SOMETHING_WRONG },
+          HTTP_STATUSES.INTERNAL_SERVER_ERROR
+        );
+      }
+
+      return SUCCESS_MESSAGE.CREATE_PRODUCT;
+    }
   };
 }
