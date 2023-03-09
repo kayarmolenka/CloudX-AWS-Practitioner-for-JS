@@ -2,16 +2,39 @@ service: product-service
 
 frameworkVersion: '3'
 
+useDotenv: true
+
 provider:
   name: aws
   runtime: nodejs14.x
   stage: dev
   region: eu-west-1
 
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+            - dynamodb:DescribeTable
+            - dynamodb:Query
+            - dynamodb:Scan
+            - dynamodb:GetItem
+            - dynamodb:PutItem
+            - dynamodb:UpdateItem
+            - dynamodb:DeleteItem
+            - dynamodb:BatchGetItem
+            - dynamodb:BatchWriteItem
+          Resource: 'arn:aws:dynamodb:eu-west-1:*:*'
+
+  environment:
+    ProductsTable: ${env:PRODUCTS_TABLE}
+    StocksTable: ${env:STOCKS_TABLE}
+
 plugins:
   - serverless-auto-swagger
   - serverless-webpack
   - serverless-offline
+  - serverless-dotenv-plugin
 
 custom:
   apiBaseUrl: https://ayoda6b68a.execute-api.eu-west-1.amazonaws.com/dev
@@ -45,3 +68,39 @@ functions:
           path: products/{productId}
           method: get
           cors: true
+
+  createProduct:
+    handler: src/handler.createProduct
+    events:
+      - http:
+          path: products
+          method: post
+          cors: true
+
+resources:
+  Resources:
+    products:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        AttributeDefinitions:
+          - AttributeName: id
+            AttributeType: S
+        KeySchema:
+          - AttributeName: id
+            KeyType: HASH
+        ProvisionedThroughput:
+          ReadCapacityUnits: 1
+          WriteCapacityUnits: 1
+    stocks:
+      Type: AWS::DynamoDB::Table
+      DeletionPolicy: Retain
+      Properties:
+        AttributeDefinitions:
+          - AttributeName: product_id
+            AttributeType: S
+        KeySchema:
+          - AttributeName: product_id
+            KeyType: HASH
+        ProvisionedThroughput:
+          ReadCapacityUnits: 1
+          WriteCapacityUnits: 1
