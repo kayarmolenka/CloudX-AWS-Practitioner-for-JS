@@ -1,0 +1,32 @@
+import { S3 } from "aws-sdk";
+import { errorResponse, successfulResponse } from "../utils/responses";
+import { ERROR_MESSAGE, HTTP_STATUSES, SUCCESS_MESSAGE } from "../constants";
+import { ImportService } from "../services";
+
+const s3 = new S3({ region: "eu-west-1", signatureVersion: "v4" });
+
+export const importFileParser = async (event) => {
+  const importService = new ImportService();
+  try {
+    const record = event.Records[0];
+
+    const params = {
+      Bucket: record.s3.bucket.name,
+      Key: record.s3.object.key,
+    };
+
+    const products = await importService.getProductsFromCSVInS3(s3, params);
+
+    if (products) {
+      await importService.moveParsedFile(s3, params);
+
+      console.log(SUCCESS_MESSAGE.FILE_WAS_MOVED);
+
+      return successfulResponse(products);
+    }
+
+    return errorResponse({ message: ERROR_MESSAGE.UNABLE_PARSE_FILE });
+  } catch (err) {
+    return errorResponse(err, HTTP_STATUSES.INTERNAL_SERVER_ERROR);
+  }
+};

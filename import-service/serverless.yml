@@ -1,0 +1,56 @@
+service: import-service
+
+frameworkVersion: '3'
+
+provider:
+  name: aws
+  runtime: nodejs14.x
+  stage: dev
+  region: eu-west-1
+
+  iam:
+    role:
+      statements:
+        - Effect: "Allow"
+          Action: "s3:ListBucket"
+          Resource:
+            - "arn:aws:s3:::import-products-file-bucket"
+        - Effect: "Allow"
+          Action: "s3:*"
+          Resource:
+            - "arn:aws:s3:::import-products-file-bucket/*"
+
+plugins:
+  - serverless-webpack
+
+custom:
+  webpack:
+    webpackConfig: 'webpack.config.js'
+    includeModules: true
+    packager: npm
+  serverless-offline:
+    httpPort: 3001
+
+functions:
+  importProductsFile:
+    handler: src/handler.importProductsFile
+    events:
+      - http:
+          path: import
+          method: get
+          request:
+            parameters:
+              querystrings:
+                name: true
+          cors: true
+
+  importFileParser:
+    handler: src/handler.importFileParser
+    events:
+      - s3:
+          bucket: import-products-file-bucket
+          event: s3:ObjectCreated:*
+          rules:
+            - prefix: uploaded/
+            - suffix: .csv
+          existing: true
