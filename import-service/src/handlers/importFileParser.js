@@ -19,6 +19,7 @@ export const importFileParser = async (event) => {
     const products = await importService.getProductsFromCSVInS3(s3, params);
 
     if (products) {
+      console.log("PRODUCTSSSS:", products);
       await Promise.all(
         products.map((product) => importService.sendMessageToSQS(sqs, product))
       );

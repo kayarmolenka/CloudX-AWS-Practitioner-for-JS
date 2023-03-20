@@ -25,16 +25,21 @@ provider:
             - dynamodb:BatchGetItem
             - dynamodb:BatchWriteItem
           Resource: 'arn:aws:dynamodb:eu-west-1:*:*'
-#        - Effect: Allow
-#          Action: "sqs:*"
-#          Resource:
-#            - Fn::GetAtt: [ catalogItemsQueue, Arn ]
+        - Effect: Allow
+          Action: "sqs:*"
+          Resource:
+            - Fn::GetAtt: [ catalogItemsQueue, Arn ]
+        - Effect: "Allow"
+          Action: "sns:*"
+          Resource:
+            Ref: createProductTopic
 
   environment:
     ProductsTable: ${env:PRODUCTS_TABLE}
     StocksTable: ${env:STOCKS_TABLE}
     SQS_URL:
       Ref: catalogItemsQueue
+    SNS_TOPIC_ARN: !Ref createProductTopic
 
 plugins:
   - serverless-auto-swagger
@@ -64,6 +69,32 @@ resources:
       Type: "AWS::SQS::Queue"
       Properties:
         QueueName: "catalogItemsQueue"
+    createProductTopic:
+      Type: AWS::SNS::Topic
+      Properties:
+        TopicName: createProductTopic
+    primeSubscription:
+      Type: AWS::SNS::Subscription
+      Properties:
+        Endpoint: kosaty007@mail.ru
+        Protocol: email
+        TopicArn: { "Ref": "createProductTopic" }
+        FilterPolicy:
+          price:
+            - numeric:
+                - ">="
+                - 10
+    basicSubscription:
+      Type: AWS::SNS::Subscription
+      Properties:
+        Endpoint: kanstantsin_yarmolenka@epam.com
+        Protocol: email
+        TopicArn: { "Ref": "createProductTopic" }
+        FilterPolicy:
+          price:
+            - numeric:
+                - "<"
+                - 10
 
     products:
       Type: AWS::DynamoDB::Table

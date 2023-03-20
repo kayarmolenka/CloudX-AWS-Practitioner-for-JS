@@ -22,7 +22,10 @@ export class ImportService {
       return new Promise((resolve, reject) => {
         s3Stream
           .pipe(csvParser({ separator: ";" }))
-          .on("data", console.log)
+          .on("data", (data) => {
+            console.log("Product:", data);
+            products.push(data);
+          })
           .on("end", () => {
             console.log("Stream has ended");
             console.table(products);
