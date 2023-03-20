@@ -2,6 +2,8 @@ service: import-service
 
 frameworkVersion: '3'
 
+useDotenv: true
+
 provider:
   name: aws
   runtime: nodejs14.x
@@ -20,8 +22,12 @@ provider:
           Resource:
             - "arn:aws:s3:::import-products-file-bucket/*"
 
+  environment:
+    SQS_URL: ${env:SQS_URL}
+
 plugins:
   - serverless-webpack
+  - serverless-dotenv-plugin
 
 custom:
   webpack:

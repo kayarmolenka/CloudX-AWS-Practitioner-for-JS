@@ -25,10 +25,16 @@ provider:
             - dynamodb:BatchGetItem
             - dynamodb:BatchWriteItem
           Resource: 'arn:aws:dynamodb:eu-west-1:*:*'
+#        - Effect: Allow
+#          Action: "sqs:*"
+#          Resource:
+#            - Fn::GetAtt: [ catalogItemsQueue, Arn ]
 
   environment:
     ProductsTable: ${env:PRODUCTS_TABLE}
     StocksTable: ${env:STOCKS_TABLE}
+    SQS_URL:
+      Ref: catalogItemsQueue
 
 plugins:
   - serverless-auto-swagger
@@ -51,6 +57,40 @@ custom:
       title: My API
       version: 1.0.0
     host: https://ayoda6b68a.execute-api.eu-west-1.amazonaws.com/dev
+
+resources:
+  Resources:
+    catalogItemsQueue:
+      Type: "AWS::SQS::Queue"
+      Properties:
+        QueueName: "catalogItemsQueue"
+
+    products:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        AttributeDefinitions:
+          - AttributeName: id
+            AttributeType: S
+        KeySchema:
+          - AttributeName: id
+            KeyType: HASH
+        ProvisionedThroughput:
+          ReadCapacityUnits: 1
+          WriteCapacityUnits: 1
+
+    stocks:
+      Type: AWS::DynamoDB::Table
+      DeletionPolicy: Retain
+      Properties:
+        AttributeDefinitions:
+          - AttributeName: product_id
+            AttributeType: S
+        KeySchema:
+          - AttributeName: product_id
+            KeyType: HASH
+        ProvisionedThroughput:
+          ReadCapacityUnits: 1
+          WriteCapacityUnits: 1
 
 functions:
   getProductsList:
@@ -77,30 +117,12 @@ functions:
           method: post
           cors: true
 
-resources:
-  Resources:
-    products:
-      Type: AWS::DynamoDB::Table
-      Properties:
-        AttributeDefinitions:
-          - AttributeName: id
-            AttributeType: S
-        KeySchema:
-          - AttributeName: id
-            KeyType: HASH
-        ProvisionedThroughput:
-          ReadCapacityUnits: 1
-          WriteCapacityUnits: 1
-    stocks:
-      Type: AWS::DynamoDB::Table
-      DeletionPolicy: Retain
-      Properties:
-        AttributeDefinitions:
-          - AttributeName: product_id
-            AttributeType: S
-        KeySchema:
-          - AttributeName: product_id
-            KeyType: HASH
-        ProvisionedThroughput:
-          ReadCapacityUnits: 1
-          WriteCapacityUnits: 1
+  catalogBatchProcess:
+    handler: src/handler.catalogBatchProcess
+    events:
+      - sqs:
+          batchSize: 5
+          arn:
+            Fn::GetAtt:
+              - catalogItemsQueue
+              - Arn
