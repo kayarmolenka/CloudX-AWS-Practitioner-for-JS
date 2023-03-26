@@ -1,0 +1,23 @@
+{
+  "name": "authorization-service",
+  "version": "1.0.0",
+  "description": "authorization-service for AWS project",
+  "main": "src/handler.js",
+  "scripts": {
+    "deploy": "serverless deploy"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "serverless-dotenv-plugin": "^6.0.0"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.21.3",
+    "@babel/preset-env": "^7.20.2",
+    "babel-loader": "^9.1.2",
+    "babel-preset-env": "^1.7.0",
+    "serverless-webpack": "^5.11.0",
+    "webpack": "^5.76.3",
+    "webpack-node-externals": "^3.0.0"
+  }
+}
